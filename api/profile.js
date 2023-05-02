@@ -1,28 +1,28 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const authMiddleware = require("../middleware/authMiddleware");
-const UserModel = require("../models/UserModel");
-const ProfileModel = require("../models/ProfileModel");
-const FollowerModel = require("../models/FollowerModel");
-const PostModel = require("../models/PostModel");
-const bcrypt = require("bcryptjs");
+const authMiddleware = require('../middleware/authMiddleware');
+const UserModel = require('../models/UserModel');
+const ProfileModel = require('../models/ProfileModel');
+const FollowerModel = require('../models/FollowerModel');
+const PostModel = require('../models/PostModel');
+const bcrypt = require('bcryptjs');
 const {
   newFollowerNotification,
   removeFollowerNotification,
-} = require("../utilsServer/notificationActions");
+} = require('../utilsServer/notificationActions');
 
 // GET PROFILE INFO
-router.get("/:username", authMiddleware, async (req, res) => {
+router.get('/:username', authMiddleware, async (req, res) => {
   try {
     const { username } = req.params;
 
     const user = await UserModel.findOne({ username: username.toLowerCase() });
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     const profile = await ProfileModel.findOne({ user: user._id }).populate(
-      "user"
+      'user'
     );
     const profileFollowStats = await FollowerModel.findOne({ user: user._id });
 
@@ -39,72 +39,72 @@ router.get("/:username", authMiddleware, async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send('Server error');
   }
 });
 
 // GET POSTS OF USER
-router.get("/posts/:username", authMiddleware, async (req, res) => {
+router.get('/posts/:username', authMiddleware, async (req, res) => {
   try {
     const { username } = req.params;
 
     const user = await UserModel.findOne({ username: username.toLowerCase() });
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     const posts = await PostModel.find({ user: user._id })
       .sort({ createdAt: -1 })
-      .populate("user")
-      .populate("comments.user");
+      .populate('user')
+      .populate('comments.user');
 
     return res.json(posts);
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send('Server error');
   }
 });
 
 // GET FOLLOWERS OF USER
-router.get("/followers/:userId", authMiddleware, async (req, res) => {
+router.get('/followers/:userId', authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
 
-    const user = await UserModel.findOne({ user: userId }).populate(
-      "followers.user"
+    const user = await FollowerModel.findOne({ user: userId }).populate(
+      'followers.user'
     );
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     return res.json(user.followers);
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send('Server error');
   }
 });
 
 // GET FOLLOWING OF USER
-router.get("/following/:userId", authMiddleware, async (req, res) => {
+router.get('/following/:userId', authMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
 
     const user = await FollowerModel.findOne({ user: userId }).populate(
-      "following.user"
+      'following.user'
     );
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     return res.json(user.following);
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server Error");
+    return res.status(500).send('Server Error');
   }
 });
 
 // FOLLOW A USER
-router.post("/follow/:userToFollowId", authMiddleware, async (req, res) => {
+router.post('/follow/:userToFollowId', authMiddleware, async (req, res) => {
   try {
     const { userId } = req;
     const { userToFollowId } = req.params;
@@ -113,7 +113,7 @@ router.post("/follow/:userToFollowId", authMiddleware, async (req, res) => {
     const userToFollow = await FollowerModel.findOne({ user: userToFollowId });
 
     if (!user || !userToFollow) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     const isFollowing =
@@ -123,7 +123,7 @@ router.post("/follow/:userToFollowId", authMiddleware, async (req, res) => {
       ).length > 0;
 
     if (isFollowing) {
-      return res.status(401).send("User already followed");
+      return res.status(401).send('User already followed');
     }
 
     await user.following.unshift({ user: userToFollowId });
@@ -135,15 +135,15 @@ router.post("/follow/:userToFollowId", authMiddleware, async (req, res) => {
     // Add notification
     await newFollowerNotification(userId, userToFollowId);
 
-    return res.status(200).send("Successfully followed user");
+    return res.status(200).send('Successfully followed user');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server Error");
+    return res.status(500).send('Server Error');
   }
 });
 
 // UNFOLLOW A USER
-router.put("/unfollow/:userToUnfollowId", authMiddleware, async (req, res) => {
+router.put('/unfollow/:userToUnfollowId', authMiddleware, async (req, res) => {
   try {
     const { userId } = req;
     const { userToUnfollowId } = req.params;
@@ -157,7 +157,7 @@ router.put("/unfollow/:userToUnfollowId", authMiddleware, async (req, res) => {
     });
 
     if (!user || !userToUnfollow) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     const isFollowing =
@@ -167,7 +167,7 @@ router.put("/unfollow/:userToUnfollowId", authMiddleware, async (req, res) => {
       ).length === 0;
 
     if (isFollowing) {
-      return res.status(401).send("User not followed before");
+      return res.status(401).send('User not followed before');
     }
 
     const removeFollowing = await user.following
@@ -187,15 +187,15 @@ router.put("/unfollow/:userToUnfollowId", authMiddleware, async (req, res) => {
     // Remove notification
     await removeFollowerNotification(userId, userToUnfollowId);
 
-    return res.status(200).send("Successfully unfollowed user");
+    return res.status(200).send('Successfully unfollowed user');
   } catch (error) {
     console.error(error);
-    res.status(500).send("server error");
+    res.status(500).send('server error');
   }
 });
 
 // UPDATE PROFILE
-router.post("/update", authMiddleware, async (req, res) => {
+router.post('/update', authMiddleware, async (req, res) => {
   try {
     const { userId } = req;
 
@@ -224,53 +224,53 @@ router.post("/update", authMiddleware, async (req, res) => {
     );
 
     if (!profilePicUrl) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     const user = await UserModel.findById(userId);
     user.profilePicUrl = profilePicUrl;
     await user.save();
 
-    return res.status(200).send("Success updated user profile");
+    return res.status(200).send('Success updated user profile');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server Error");
+    return res.status(500).send('Server Error');
   }
 });
 
 // UPDATE PASSWORD
-router.post("/settings/password", authMiddleware, async (req, res) => {
+router.post('/settings/password', authMiddleware, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
     if (newPassword.length < 6) {
-      return res.status(400).send("Password must be at least 6 characters");
+      return res.status(400).send('Password must be at least 6 characters');
     }
 
-    const user = await UserModel.findById(req.userId).select("+password");
+    const user = await UserModel.findById(req.userId).select('+password');
 
     const isPassword = await bcrypt.compare(currentPassword, user.password);
 
     if (!isPassword) {
-      return res.status(401).send("Unauthorized request");
+      return res.status(401).send('Unauthorized request');
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
 
-    res.status(200).send("Successfully updated password");
+    res.status(200).send('Successfully updated password');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send('Server error');
   }
 });
 
 // UPDATE MESSAGE POPUP SETTINGS
-router.post("/settings/messagePopup", authMiddleware, async (req, res) => {
+router.post('/settings/messagePopup', authMiddleware, async (req, res) => {
   try {
     const user = await UserModel.findById(req.userId);
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(404).send('User not found');
     }
 
     if (user.newMessagePopup) {
@@ -280,10 +280,10 @@ router.post("/settings/messagePopup", authMiddleware, async (req, res) => {
     }
 
     await user.save();
-    return res.status(200).send("Updated message popup settings");
+    return res.status(200).send('Updated message popup settings');
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send('Server error');
   }
 });
 

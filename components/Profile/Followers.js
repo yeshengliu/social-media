@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { Button, Image, List } from "semantic-ui-react";
-import Spinner from "../Layout/Spinner";
-import { NoFollowData } from "../Layout/NoData";
-import { followUser, unfollowUser } from "../../utils/profileActions";
-import axios from "axios";
-import baseUrl from "../../utils/baseUrl";
-import cookie from "js-cookie";
+import { useState, useEffect } from 'react';
+import { Button, Image, List } from 'semantic-ui-react';
+import Spinner from '../Layout/Spinner';
+import { NoFollowData } from '../Layout/NoData';
+import { followUser, unfollowUser } from '../../utils/profileActions';
+import axios from 'axios';
+import baseUrl from '../../utils/baseUrl';
+import cookie from 'js-cookie';
 
 export default ({
   user,
@@ -25,7 +25,7 @@ export default ({
         const res = await axios.get(
           `${baseUrl}/api/profile/followers/${profileUserId}`,
           {
-            headers: { Authorization: cookie.get("token") },
+            headers: { Authorization: cookie.get('token') },
           }
         );
 
@@ -57,9 +57,9 @@ export default ({
                 <List.Content floated="right">
                   {profileFollower.user._id !== user._id && (
                     <Button
-                      color={isFollowing ? "instagram" : "twitter"}
-                      icon={isFollowing ? "check" : "add user"}
-                      content={isFollowing ? "Following" : "Follow"}
+                      color={isFollowing ? 'instagram' : 'twitter'}
+                      icon={isFollowing ? 'check' : 'add user'}
+                      content={isFollowing ? 'Following' : 'Follow'}
                       disabled={followLoading}
                       onClick={() => {
                         setFollowLoading(true);

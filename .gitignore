@@ -120,3 +120,5 @@ dist
 # config
 config.env
 next.config.js
+.vercel
+.vscode

@@ -1,6 +1,8 @@
 # Social Media Full-Stack App
 
-[**Link to App**](https://social-media-hdsk.onrender.com/) - may be slow because the application is hosted on a free tier plan
+[**Link to App**](https://social-media-j6f66c4la-yeshengliu.vercel.app/)
+
+~~[**Link to App**](https://social-media-hdsk.onrender.com/) - previous deployment on render~~
 
 ## Intro
 
